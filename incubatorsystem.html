@@ -1,0 +1,5471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nestwise Incubator</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+:root{--disp:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;--body:var(--disp);--warm:#F26A3D;--water:#3B8BEB;--ok:#2E9E6B;--bad:#D9534F;--amber:#F5A524}
+body{--g:rgba(255,255,255,.72);--gb:rgba(255,255,255,.85);--ink:#10233A;--mute:#4F657C;--line:rgba(16,35,58,.13);--inp:rgba(255,255,255,.75);--btn:#10233A;--btnInk:#fff;--track:rgba(16,35,58,.12);--ct:#10233A;--ct2:#4F657C;--cg:rgba(16,35,58,.08);--sh:0 18px 50px rgba(16,35,58,.18)}
+body[data-theme=night]{--g:rgba(10,18,42,.62);--gb:rgba(255,255,255,.12);--ink:#EAF0FF;--mute:#9DB0D3;--line:rgba(255,255,255,.12);--inp:rgba(255,255,255,.07);--btn:#F5A524;--btnInk:#1A1200;--track:rgba(255,255,255,.14);--ct:#EAF0FF;--ct2:#9DB0D3;--cg:rgba(255,255,255,.08);--sh:0 18px 50px rgba(0,0,0,.45)}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--body);color:var(--ink);background:#0B1633;min-height:100vh;font-variant-numeric:tabular-nums}
+
+/* backgrounds */
+.bgl{position:fixed;inset:0;z-index:-1;opacity:0;transition:opacity 1.6s ease;overflow:hidden}
+.bgl svg{position:absolute;inset:0;width:100%;height:100%}
+body[data-theme=day] #bgDay,body[data-theme=night] #bgNight{opacity:1}
+.sun{animation:sunrise 10s cubic-bezier(.2,.7,.2,1) both}
+body[data-theme=night] .sun{animation:none}
+.rays{transform-origin:720px 600px;animation:spin 200s linear infinite}
+@keyframes sunrise{from{transform:translateY(330px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.cloud{animation:drift 80s ease-in-out infinite alternate}.c2{animation-duration:110s}.c3{animation-duration:65s}
+@keyframes drift{to{transform:translateX(110px)}}
+.star{animation:tw 3s ease-in-out infinite alternate}
+@keyframes tw{from{opacity:.2}to{opacity:1}}
+.meteor{position:absolute;left:var(--x);top:var(--y);width:150px;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,#fff);transform-origin:right center;opacity:0;animation:shoot var(--d) linear infinite;animation-delay:var(--w)}
+.meteor::after{content:"";position:absolute;right:-2px;top:-2px;width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 10px 3px #fff9}
+@keyframes shoot{0%{opacity:0;transform:rotate(32deg) translateX(0)}2%{opacity:1}9%{opacity:0;transform:rotate(32deg) translateX(520px)}100%{opacity:0;transform:rotate(32deg) translateX(520px)}}
+
+/* layout */
+.side{position:fixed;left:14px;top:14px;bottom:14px;width:236px;z-index:50;background:var(--g);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--gb);border-radius:22px;padding:20px 14px;display:flex;flex-direction:column;box-shadow:var(--sh)}
+.brand{display:flex;align-items:center;gap:11px;padding:4px 8px 22px;font-weight:800;font-size:19px;letter-spacing:-.01em}
+.brand svg{width:34px;height:34px;flex:none}
+.brand small{display:block;font-size:11px;font-weight:600;color:var(--mute);letter-spacing:0}
+#sidebar{display:flex;flex-direction:column;gap:4px}
+.nav-btn{display:flex;align-items:center;gap:12px;border:0;background:transparent;color:var(--mute);font:600 14px var(--body);padding:12px 14px;border-radius:12px;cursor:pointer;text-align:left}
+.nav-btn svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.nav-btn:hover{color:var(--ink);background:var(--line)}
+.nav-btn.active{background:var(--btn);color:var(--btnInk)}
+.side-foot{margin-top:auto;font-size:12px;color:var(--mute);padding:0 8px}
+.main{margin-left:264px;padding:14px 22px 40px 8px;max-width:1320px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--g);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--gb);border-radius:18px;padding:12px 18px;margin-bottom:18px;box-shadow:var(--sh)}
+.top h1{margin:0;font-size:18px;font-weight:800}
+.top .sub2{font-size:12px;color:var(--mute)}
+.tools{display:flex;align-items:center;gap:10px}
+.pill{padding:8px 13px;border-radius:99px;background:rgba(46,158,107,.16);color:var(--ok);font-size:12px;font-weight:700}
+.pill.off{background:rgba(217,83,79,.16);color:var(--bad)}
+.tbtn{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:99px;padding:8px 13px;font:700 12px var(--body);cursor:pointer}
+.page{display:none}.page.active{display:block}
+.page-header{background:var(--g);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--gb);border-radius:16px;padding:14px 18px;margin-bottom:16px}
+.page-header h2{margin:0 0 3px;font-size:17px;font-weight:800}.page-header p{margin:0;font-size:13px;color:var(--mute)}
+.grid{display:grid;gap:16px}.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
+.card{background:var(--g);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--gb);border-radius:18px;padding:20px;margin-bottom:16px;box-shadow:var(--sh)}
+.grid .card{margin-bottom:0}
+.lbl{font-weight:700;font-size:13px;color:var(--mute);margin-bottom:12px}
+.val{font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:1}.unit{color:var(--mute);font-size:15px;font-weight:600}
+.sub{color:var(--mute);font-size:12px;margin-top:6px;line-height:1.5}
+.row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}.row:last-child{border:0}
+.warn{border-color:var(--bad)!important;box-shadow:0 0 0 3px rgba(217,83,79,.25),var(--sh)}
+.kpi{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.ring{width:104px;height:104px;flex:none;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:9;stroke-linecap:round}.ring .t{stroke:var(--track)}
+.ring .p{transition:stroke-dashoffset .8s ease}
+.delta{display:inline-block;margin-top:12px;font-size:12px;font-weight:700;padding:5px 10px;border-radius:99px;background:rgba(46,158,107,.16);color:var(--ok)}
+.delta.bad{background:rgba(217,83,79,.16);color:var(--bad)}
+.dev{display:flex;align-items:center;gap:14px}
+.dev .dot{width:12px;height:12px;border-radius:50%;background:#8795A8;flex:none}.dev.on .dot{background:var(--ok);box-shadow:0 0 0 5px rgba(46,158,107,.2)}
+.dev b{font-size:24px;font-weight:800;display:block}
+button.act{border:0;background:var(--btn);color:var(--btnInk);border-radius:11px;padding:11px 16px;cursor:pointer;font:700 13px var(--body)}
+button.act:hover{filter:brightness(1.12)}button.act.sec{background:transparent;color:var(--ink);border:1px solid var(--line)}button.act.red{background:transparent;color:var(--bad);border:1px solid rgba(217,83,79,.45)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.switch{width:50px;height:28px;background:var(--track);border-radius:20px;position:relative;cursor:pointer;flex:none;transition:.2s}
+.switch::after{content:"";position:absolute;width:22px;height:22px;background:#fff;border-radius:50%;left:3px;top:3px;transition:.2s;box-shadow:0 2px 4px #0004}
+.switch.on{background:var(--ok)}.switch.on::after{left:25px}
+.overview-control{display:flex;flex-direction:column;align-items:center;gap:5px;margin-left:auto}
+.overview-switch-label{font-size:10px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.04em}
+input{width:100%;background:var(--inp);color:var(--ink);border:1px solid var(--line);border-radius:11px;padding:12px;font:inherit;color-scheme:light}
+body[data-theme=night] input{color-scheme:dark}
+label{display:block;font-size:12px;font-weight:600;color:var(--mute);margin-bottom:6px}
+.fg{margin-bottom:14px}
+.mode-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--line);padding:5px;border-radius:13px}
+.mode-tab{border:0;border-radius:9px;padding:10px;background:transparent;color:var(--mute);font:700 13px var(--body);cursor:pointer}
+.mode-tab.active{background:var(--btn);color:var(--btnInk)}
+.alert{padding:12px 16px;border-radius:12px;font-size:13px;margin-bottom:16px;display:none;font-weight:600;background:var(--g);backdrop-filter:blur(14px);border:1px solid var(--gb);border-left:4px solid var(--amber)}
+.alert.show{display:block}
+.alert.success{border-left-color:var(--ok)}.alert.error{border-left-color:var(--bad)}.alert.info{border-left-color:var(--water)}.alert.warning{border-left-color:var(--amber)}
+.chart{height:360px;position:relative}
+.range{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.range button{border:1px solid var(--line);background:transparent;color:var(--mute);border-radius:99px;padding:8px 14px;cursor:pointer;font:700 12px var(--body)}
+.range button.active{background:var(--btn);color:var(--btnInk);border-color:var(--btn)}
+.bar{height:8px;background:var(--track);border-radius:20px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--warm),var(--amber));width:0;transition:.5s;border-radius:20px}
+.log{max-height:280px;overflow:auto;font-size:12px}.log div{padding:8px 0;border-bottom:1px solid var(--line)}.log b{color:var(--mute);font-weight:600;margin-right:8px}
+
+@media(max-width:1000px){.g4,.g3{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:760px){
+.side{top:auto;left:10px;right:10px;bottom:10px;width:auto;flex-direction:row;padding:8px;border-radius:20px}
+.brand,.side-foot{display:none}
+#sidebar{flex-direction:row;width:100%;justify-content:space-around}
+.nav-btn{padding:10px 12px}.nl{display:none}
+.main{margin:0;padding:10px 12px 100px}.g4,.g3,.g2{grid-template-columns:1fr}
+.top .sub2{display:none}
+}
+@media(prefers-reduced-motion:reduce){.sun,.rays,.cloud,.star,.meteor{animation:none}}
+
+body.intro-on{overflow:hidden}
+#intro{position:fixed;inset:0;z-index:999;display:grid;place-items:center;background:radial-gradient(circle at 50% 62%,#3a2a2c 0,#12131f 46%,#030409 100%);transition:opacity .9s ease,transform .9s ease,visibility .9s;cursor:pointer}
+#intro.out{opacity:0;transform:scale(1.18);visibility:hidden;pointer-events:none}
+#intro .stars{position:absolute;inset:0;background-image:radial-gradient(#fff 1px,transparent 1.5px),radial-gradient(#fff9 1px,transparent 1.5px);background-size:90px 90px,140px 140px;background-position:0 0,40px 60px;opacity:.5;animation:tw 3s ease-in-out infinite alternate}
+@keyframes tw{to{opacity:.15}}
+.in-box{position:relative;text-align:center;color:#fff}
+.in-egg{width:130px;height:162px;overflow:visible;animation:eggIn 1s cubic-bezier(.2,.8,.2,1) both,wob .5s 1.4s ease-in-out 3;filter:drop-shadow(0 0 30px #FFD98A99)}
+@keyframes eggIn{from{opacity:0;transform:translateY(50px) scale(.6)}}
+@keyframes wob{25%{transform:rotate(-7deg)}75%{transform:rotate(7deg)}}
+.in-crack{stroke-dasharray:140;stroke-dashoffset:140;animation:crack .7s 1.7s ease-out forwards}
+@keyframes crack{to{stroke-dashoffset:0}}
+.in-sun{transform-box:fill-box;transform-origin:center;transform:scale(0);animation:sunUp .9s 2.5s cubic-bezier(.2,1.2,.3,1) forwards}
+@keyframes sunUp{to{transform:scale(1)}}
+.in-burst{position:absolute;left:50%;top:81px;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;background:radial-gradient(#fff,#FFD98A 40%,transparent 70%);opacity:0;animation:burst 1.2s 2.5s ease-out forwards}
+@keyframes burst{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(22)}}
+.in-name{font-family:var(--disp);font-weight:800;font-size:clamp(40px,8vw,68px);margin:22px 0 6px;opacity:0;animation:name 1.1s 2.9s ease-out forwards;text-shadow:0 2px 24px #FFD98A66;letter-spacing:.04em}
+@keyframes name{from{opacity:0;letter-spacing:.5em}to{opacity:1;letter-spacing:.04em}}
+.in-tag{color:#FFE9D6;font-size:14px;opacity:0;animation:fade .8s 3.5s forwards}
+@keyframes fade{to{opacity:1}}
+.in-load{width:200px;height:4px;border-radius:9px;background:#ffffff26;margin:30px auto 0;overflow:hidden;opacity:0;animation:fade .5s .6s forwards}
+.in-load i{display:block;height:100%;width:0;background:linear-gradient(90deg,#FF7F6B,#FFD58A);animation:load 4.5s .6s linear forwards}
+@keyframes load{to{width:100%}}
+.in-skip{position:absolute;right:22px;bottom:22px;background:#ffffff1f;color:#fff;border:1px solid #fff5;border-radius:99px;padding:9px 16px;font:700 13px var(--body);cursor:pointer;backdrop-filter:blur(8px)}
+@media(prefers-reduced-motion:reduce){#intro *{animation-duration:.01s!important;animation-delay:0s!important}}
+.bgl canvas{position:absolute;inset:0;width:100%;height:100%}
+#vig{position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 50% 42%,transparent 38%,rgba(0,0,0,.55) 100%)}
+#grain{position:fixed;left:-50%;top:-50%;width:200%;height:200%;z-index:-1;pointer-events:none;opacity:.07;mix-blend-mode:overlay;animation:grain .9s steps(5) infinite}
+@keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-3%,2%)}40%{transform:translate(2%,-3%)}60%{transform:translate(-2%,-1%)}80%{transform:translate(3%,3%)}}
+@media(prefers-reduced-motion:reduce){#grain{animation:none}}
+</style>
+</head>
+
+<body data-theme="day">
+
+<div class="bgl" id="bgDay"><canvas id="cvDay"></canvas></div>
+<div class="bgl" id="bgNight"><canvas id="cvNight"></canvas></div>
+<div id="vig"></div>
+<div id="grain"></div>
+
+<div id="intro" role="presentation">
+  <div class="stars"></div>
+  <div class="in-box">
+    <svg class="in-egg" viewBox="0 0 120 150" aria-hidden="true">
+      <defs>
+        <clipPath id="inClip">
+          <path id="inEgg" d="M60 4C92 4 116 56 116 96C116 128 92 146 60 146C28 146 4 128 4 96C4 56 28 4 60 4Z"/>
+        </clipPath>
+      </defs>
+
+      <path d="M60 4C92 4 116 56 116 96C116 128 92 146 60 146C28 146 4 128 4 96C4 56 28 4 60 4Z" fill="#FBFAF5"/>
+      <g clip-path="url(#inClip)">
+        <circle class="in-sun" cx="60" cy="100" r="34" fill="#FFB84D"/>
+        <circle class="in-sun" cx="60" cy="100" r="20" fill="#FFE9A8"/>
+      </g>
+      <path class="in-crack" d="M16 84L38 70L52 88L70 66L88 86L106 72" fill="none" stroke="#231F3D" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+
+    <div class="in-burst"></div>
+    <h1 class="in-name">Nestwise</h1>
+    <div class="in-tag">Smart egg incubator</div>
+    <div class="in-load"><i></i></div>
+  </div>
+
+  <button class="in-skip" id="introSkip">Skip</button>
+</div>
+
+<aside class="side">
+  <div class="brand">
+    <svg viewBox="0 0 40 40">
+      <path d="M20 2C28 2 35 14 35 24C35 32 28 38 20 38C12 38 5 32 5 24C5 14 12 2 20 2Z" fill="#FBFAF5" stroke="#10233A" stroke-opacity=".25"/>
+      <circle cx="20" cy="27" r="9" fill="#F5A524"/>
+      <circle cx="20" cy="27" r="5" fill="#FFE9A8"/>
+    </svg>
+    <div>Nestwise<small>Smart incubator</small></div>
+  </div>
+
+  <nav id="sidebar">
+    <button class="nav-btn active" onclick="showPage('overview',this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      <span class="nl">Overview</span>
+    </button>
+
+    <button class="nav-btn" onclick="showPage('graph',this)">
+      <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>
+      <span class="nl">Graph &amp; Export</span>
+    </button>
+
+    <button class="nav-btn" onclick="showPage('analytics',this)">
+      <svg viewBox="0 0 24 24"><path d="M5 21V10M12 21V4M19 21v-8"/></svg>
+      <span class="nl">Analytics</span>
+    </button>
+
+    <button class="nav-btn" onclick="showPage('timer',this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>
+      <span class="nl">Timers</span>
+    </button>
+
+    <button class="nav-btn" onclick="showPage('settings',this)">
+      <svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
+      <span class="nl">Settings</span>
+    </button>
+  </nav>
+
+  <div class="side-foot">ESP32 · DHT22 · Firebase</div>
+</aside>
+
+<div class="main">
+
+<header class="top">
+  <div>
+    <h1 id="pageTitle">Overview</h1>
+    <div class="sub2" id="clock">--</div>
+  </div>
+
+  <div class="tools">
+    <button class="tbtn" id="themeBtn" onclick="cycleTheme()">Auto</button>
+    <span class="pill off" id="conn">● Offline</span>
+  </div>
+</header>
+
+<section class="page active" id="overview">
+
+  <div id="alertBox" class="alert"></div>
+
+  <div class="grid g2">
+
+    <div class="card" id="tempCard">
+      <div class="lbl">Temperature</div>
+
+      <div class="kpi">
+        <div>
+          <span class="val" id="tempV">--</span>
+          <span class="unit">°C</span>
+          <br>
+
+          <span class="delta" id="tempDelta">Waiting for data</span>
+
+          <div class="sub">
+            Target <span id="tTarget">37.5</span> °C
+          </div>
+        </div>
+
+        <svg class="ring" viewBox="0 0 100 100">
+          <circle class="t" cx="50" cy="50" r="40"/>
+          <circle class="p" id="tempRing" cx="50" cy="50" r="40"
+                  stroke="#F26A3D"
+                  stroke-dasharray="251.3"
+                  stroke-dashoffset="251.3"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="card" id="humCard">
+      <div class="lbl">Humidity</div>
+
+      <div class="kpi">
+        <div>
+          <span class="val" id="humV">--</span>
+          <span class="unit">%</span>
+          <br>
+
+          <span class="delta" id="humDelta">Waiting for data</span>
+
+          <div class="sub">
+            Target <span id="hTarget">55</span> %
+          </div>
+        </div>
+
+        <svg class="ring" viewBox="0 0 100 100">
+          <circle class="t" cx="50" cy="50" r="40"/>
+          <circle class="p" id="humRing" cx="50" cy="50" r="40"
+                  stroke="#3B8BEB"
+                  stroke-dasharray="251.3"
+                  stroke-dashoffset="251.3"/>
+        </svg>
+      </div>
+    </div>
+
+  </div>
+
+  <br>
+
+  <div class="grid g2">
+
+    <div class="card dev" id="pumpCard">
+      <span class="dot"></span>
+
+      <div style="flex:1">
+        <div class="sub" style="margin:0">Water pump · relay IN1</div>
+        <b id="pumpV">--</b>
+      </div>
+
+      <div class="overview-control">
+        <span class="overview-switch-label">Manual</span>
+        <div class="switch" id="pumpOverviewSw" onclick="toggleOverviewReq('pumpRequest')"></div>
+      </div>
+    </div>
+
+    <div class="card dev" id="motorCard">
+      <span class="dot"></span>
+
+      <div style="flex:1">
+        <div class="sub" style="margin:0">Egg-turning motor · relay IN2</div>
+        <b id="motorV">--</b>
+      </div>
+
+      <div class="overview-control">
+        <span class="overview-switch-label">Manual</span>
+        <div class="switch" id="motorOverviewSw" onclick="toggleOverviewReq('motorRequest')"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <br>
+
+  <div class="grid g2">
+
+    <div class="card">
+      <div class="lbl">System status</div>
+
+      <div class="row"><span>Mode</span><strong id="infoMode">--</strong></div>
+      <div class="row"><span>Pump timer</span><strong id="infoPT">--</strong></div>
+      <div class="row"><span>Motor timer</span><strong id="infoMT">--</strong></div>
+      <div class="row"><span>Last update</span><strong id="lastUpd">--</strong></div>
+    </div>
+
+    <div class="card">
+      <div class="lbl">Incubation progress</div>
+
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px">
+        <span class="val" style="font-size:34px" id="incPct">0%</span>
+        <span id="incDays">Day 0 / 21</span>
+      </div>
+
+      <div class="bar">
+        <i id="incBar"></i>
+      </div>
+
+      <p class="sub">
+        Set the start date and total days in Settings.
+        Stop turning the eggs for the last 3 days.
+      </p>
+    </div>
+
+  </div>
+
+</section>
+
+<section class="page" id="graph">
+
+  <div class="page-header">
+    <h2>Temperature and humidity</h2>
+    <p>History is saved in this browser. Download it as an Excel file whenever you need it.</p>
+  </div>
+
+  <div class="card">
+
+    <div class="range" id="rangeBtns">
+      <button onclick="setRange(1,this)">1 hour</button>
+      <button onclick="setRange(6,this)">6 hours</button>
+      <button class="active" onclick="setRange(24,this)">24 hours</button>
+      <button onclick="setRange(0,this)">All</button>
+    </div>
+
+    <div class="chart">
+      <canvas id="mainChart"></canvas>
+    </div>
+
+    <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="act" onclick="exportExcel()">Download Excel</button>
+      <button class="act sec" onclick="exportCSV()">Download CSV</button>
+      <button class="act red" onclick="clearHistory()">Clear history</button>
+    </div>
+
+    <p class="sub">
+      The Excel file has three sheets:
+      History (every reading), Hourly (averages) and Summary (analytics).
+    </p>
+
+  </div>
+</section>
+
+<section class="page" id="analytics">
+
+  <div class="page-header">
+    <h2>Analytics</h2>
+    <p>Statistics for the range chosen on the graph page, measured against your targets.</p>
+  </div>
+
+  <div class="grid g4" id="anCards"></div>
+
+  <br>
+
+  <div class="grid g2">
+
+    <div class="card">
+      <div class="lbl">Hourly average</div>
+      <div class="chart">
+        <canvas id="hourChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+
+      <div class="lbl">Time inside target range</div>
+
+      <div class="row">
+        <span>Temperature</span>
+        <strong id="tInR">--</strong>
+      </div>
+
+      <div class="bar"><i id="tBar"></i></div>
+
+      <br>
+
+      <div class="row">
+        <span>Humidity</span>
+        <strong id="hInR">--</strong>
+      </div>
+
+      <div class="bar"><i id="hBar"></i></div>
+
+      <br>
+
+      <div class="row">
+        <span>Temperature alerts</span>
+        <strong id="tAl">--</strong>
+      </div>
+
+      <div class="row">
+        <span>Humidity alerts</span>
+        <strong id="hAl">--</strong>
+      </div>
+
+      <div class="row">
+        <span>Stability score</span>
+        <strong id="stab">--</strong>
+      </div>
+
+      <p class="sub">
+        Stability shows how steady the temperature stayed.
+        100 means perfectly flat.
+      </p>
+
+    </div>
+
+  </div>
+</section>
+
+<section class="page" id="timer">
+
+  <div class="page-header">
+    <h2>Timers</h2>
+    <p>Schedule the humidity pump and the egg-turning motor.</p>
+  </div>
+
+  <div id="timerAlert" class="alert"></div>
+
+  <div class="grid g2">
+
+    <div class="card">
+
+      <div class="lbl">Operating mode</div>
+
+      <div class="mode-tabs">
+        <button class="mode-tab" id="mAuto" onclick="setMode('AUTO')">
+          Auto (timers)
+        </button>
+
+        <button class="mode-tab" id="mMan" onclick="setMode('MANUAL')">
+          Manual
+        </button>
+      </div>
+
+      <p class="sub">
+        Auto runs both timers. Manual follows the switches below.
+      </p>
+
+      <div class="row">
+        <div>
+          Pump
+          <div class="sub">Manual mode only</div>
+        </div>
+
+        <div class="switch" id="pumpSw" onclick="toggleReq('pumpRequest')"></div>
+      </div>
+
+      <div class="row">
+        <div>
+          Motor
+          <div class="sub">Manual mode only</div>
+        </div>
+
+        <div class="switch" id="motorSw" onclick="toggleReq('motorRequest')"></div>
+      </div>
+
+    </div>
+
+    <div class="card">
+
+      <div class="lbl">Pump timer (humidity)</div>
+
+      <div class="fg">
+        <label>Enabled</label>
+        <div class="switch" id="pEn" onclick="toggleTimer('pump')"></div>
+      </div>
+
+      <div class="grid g2">
+
+        <div>
+          <label>Run every (minutes)</label>
+          <input type="number" id="pInt" min="1" value="60">
+        </div>
+
+        <div>
+          <label>Run for (seconds)</label>
+          <input type="number" id="pDur" min="1" value="10">
+        </div>
+
+      </div>
+
+      <br>
+
+      <button class="act" onclick="saveTimer('pump')">
+        Save pump timer
+      </button>
+
+    </div>
+
+    <div class="card">
+
+      <div class="lbl">Motor timer (egg turning)</div>
+
+      <div class="fg">
+        <label>Enabled</label>
+        <div class="switch" id="mEn" onclick="toggleTimer('motor')"></div>
+      </div>
+
+      <div class="grid g2">
+
+        <div>
+          <label>Run every (minutes)</label>
+          <input type="number" id="mInt" min="1" value="180">
+        </div>
+
+        <div>
+          <label>Run for (seconds)</label>
+          <input type="number" id="mDur" min="1" value="15">
+        </div>
+
+      </div>
+
+      <br>
+
+      <button class="act" onclick="saveTimer('motor')">
+        Save motor timer
+      </button>
+
+    </div>
+
+    <div class="card">
+
+      <div class="lbl">Event log</div>
+      <div class="log" id="logBox"></div>
+
+      <br>
+
+      <button class="act red" onclick="clearLog()">
+        Clear log
+      </button>
+
+    </div>
+
+  </div>
+</section>
+
+<section class="page" id="settings">
+
+  <div class="page-header">
+    <h2>Settings</h2>
+    <p>Connect to Firebase and set what a healthy incubator looks like.</p>
+  </div>
+
+  <div id="setAlert" class="alert"></div>
+
+  <div class="card">
+
+    <div class="lbl">Firebase connection</div>
+
+    <div class="fg">
+      <label>Realtime Database URL</label>
+      <input id="cfgUrl"
+             placeholder="https://your-project-default-rtdb.firebaseio.com">
+    </div>
+
+    <div class="fg">
+      <label>Web API key</label>
+      <input id="cfgKey"
+             type="password"
+             placeholder="AIza...">
+    </div>
+
+    <button class="act" onclick="saveConfig()">
+      Save and connect
+    </button>
+
+    <button class="act sec" onclick="resetConfig()">
+      Reset
+    </button>
+
+    <p class="sub">
+      Turn on Anonymous sign-in in Firebase Console,
+      under Authentication. Data is stored at /incubator.
+    </p>
+
+  </div>
+
+  <div class="card">
+
+    <div class="lbl">Incubation targets</div>
+
+    <div class="grid g3">
+
+      <div>
+        <label>Target temperature (°C)</label>
+        <input type="number" step="0.1" id="tgtT" value="37.5">
+      </div>
+
+      <div>
+        <label>Temperature tolerance (± °C)</label>
+        <input type="number" step="0.1" id="tolT" value="0.5">
+      </div>
+
+      <div>
+        <label>Target humidity (%)</label>
+        <input type="number" id="tgtH" value="55">
+      </div>
+
+      <div>
+        <label>Humidity tolerance (± %)</label>
+        <input type="number" id="tolH" value="5">
+      </div>
+
+      <div>
+        <label>Start date</label>
+        <input type="date" id="startD">
+      </div>
+
+      <div>
+        <label>Total days (chicken: 21)</label>
+        <input type="number" id="totD" value="21">
+      </div>
+
+    </div>
+
+    <br>
+
+    <button class="act" onclick="saveTargets()">
+      Save targets
+    </button>
+
+  </div>
+
+</section>
+
+</div>
+
+<script>
+
+/* ============================================================
+   BASIC VARIABLES
+   ============================================================ */
+
+const $ = id => document.getElementById(id);
+
+const K = {
+  cfg:"egg_cfg",
+  hist:"egg_hist",
+  log:"egg_log",
+  tgt:"egg_tgt"
+};
+
+let cfg = {
+  dbUrl:"",
+  apiKey:""
+};
+
+let token = "";
+let tokenAt = 0;
+
+let hist = [];
+let logs = [];
+let ctl = {};
+let sen = {};
+
+let rangeH = 24;
+let charts = {};
+let timerPoll = null;
+
+let tgt = {
+  t:37.5,
+  tt:0.5,
+  h:55,
+  th:5,
+  start:"",
+  days:21
+};
+
+let lastAl = {
+  t:false,
+  h:false
+};
+
+
+/* ============================================================
+   UI HELPERS
+   ============================================================ */
+
+function alertBox(id,msg,type="info"){
+
+  const e = $(id);
+
+  if(!e) return;
+
+  e.className = "alert show " + type;
+  e.textContent = msg;
+
+  setTimeout(()=>{
+    e.classList.remove("show");
+  },5000);
+}
+
+
+function showPage(p,b){
+
+  document
+    .querySelectorAll(".page")
+    .forEach(x=>x.classList.remove("active"));
+
+  $(p).classList.add("active");
+
+  document
+    .querySelectorAll(".nav-btn")
+    .forEach(x=>x.classList.remove("active"));
+
+  if(b) b.classList.add("active");
+
+  $("pageTitle").textContent =
+    b ? b.textContent.trim() : "";
+
+  $("sidebar").classList.remove("open");
+
+  if(p==="graph" || p==="analytics"){
+    setTimeout(refreshAll,50);
+  }
+}
+
+
+function setSw(id,on){
+
+  const e = $(id);
+
+  if(e){
+    e.classList.toggle("on",!!on);
+  }
+}
+
+
+function fmtTime(ms){
+
+  return ms
+    ? new Date(ms).toLocaleString("en-MY")
+    : "--";
+}
+
+
+function addLog(m){
+
+  logs.unshift({
+    t:Date.now(),
+    m
+  });
+
+  logs = logs.slice(0,200);
+
+  localStorage.setItem(
+    K.log,
+    JSON.stringify(logs)
+  );
+
+  renderLog();
+}
+
+
+function renderLog(){
+
+  $("logBox").innerHTML =
+    logs.length
+      ? logs.map(l =>
+          `<div>
+            <b>${fmtTime(l.t)}</b>
+            ${String(l.m).replace(/</g,"&lt;")}
+          </div>`
+        ).join("")
+      : "<div>No events.</div>";
+}
+
+
+function clearLog(){
+
+  logs = [];
+
+  localStorage.removeItem(K.log);
+
+  renderLog();
+}
+
+
+/* ============================================================
+   FIREBASE AUTHENTICATION
+   ============================================================ */
+
+async function signIn(){
+
+  try{
+
+    const r = await fetch(
+      "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" +
+      encodeURIComponent(cfg.apiKey),
+      {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          returnSecureToken:true
+        })
+      }
+    );
+
+    const j = await r.json();
+
+    if(!r.ok){
+
+      throw new Error(
+        j.error?.message ||
+        "Anonymous Firebase login failed"
+      );
+    }
+
+    token = j.idToken;
+    tokenAt = Date.now();
+
+    console.log(
+      "Firebase anonymous login: OK"
+    );
+
+  }catch(e){
+
+    if(e instanceof TypeError){
+
+      throw new Error(
+        "Failed to connect to Firebase Authentication. " +
+        "Check internet connection, API key, " +
+        "or open this HTML using Live Server."
+      );
+    }
+
+    throw e;
+  }
+}
+
+
+/* ============================================================
+   FIREBASE DATABASE URL
+   ============================================================ */
+
+function url(path){
+
+  return (
+    cfg.dbUrl.replace(/\/+$/,"") +
+    "/" +
+    path +
+    ".json?auth=" +
+    encodeURIComponent(token)
+  );
+}
+
+
+/* ============================================================
+   FIREBASE API
+   ============================================================ */
+
+async function api(method,path,body){
+
+  /*
+     LOGIN AGAIN IF:
+     - token kosong
+     - token lebih 50 minit
+  */
+
+  if(
+    !token ||
+    Date.now() - tokenAt > 50 * 60000
+  ){
+
+    await signIn();
+  }
+
+  try{
+
+    const r = await fetch(
+      url(path),
+      {
+        method:method,
+        cache:"no-store",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:
+          body === undefined
+            ? undefined
+            : JSON.stringify(body)
+      }
+    );
+
+
+    /* ======================================================
+       FIREBASE HTTP ERROR
+       ====================================================== */
+
+    if(!r.ok){
+
+      let msg = "HTTP " + r.status;
+
+      try{
+
+        const err = await r.json();
+
+        if(err?.error){
+
+          msg =
+            err.error.message ||
+            msg;
+        }
+
+      }catch(e){}
+
+      throw new Error(
+        method +
+        " " +
+        path +
+        " → " +
+        msg
+      );
+    }
+
+
+    return await r.json();
+
+  }catch(e){
+
+    if(e instanceof TypeError){
+
+      throw new Error(
+        "Firebase connection failed. " +
+        "Pastikan HTML dibuka melalui Live Server " +
+        "dan Firebase URL/API key betul."
+      );
+    }
+
+    throw e;
+  }
+}
+
+
+/* ============================================================
+   CONNECTION STATUS
+   ============================================================ */
+
+function setConn(on,txt){
+
+  const p = $("conn");
+
+  p.className =
+    "pill" +
+    (on ? "" : " off");
+
+  p.textContent =
+    "● " + txt;
+}
+
+
+/* ============================================================
+   CONNECT
+   ============================================================ */
+
+async function connect(){
+
+  if(
+    !cfg.dbUrl ||
+    !cfg.apiKey
+  ){
+
+    setConn(false,"Not configured");
+    return;
+  }
+
+
+  try{
+
+    /*
+       Stop old polling first.
+       This prevents multiple polling loops.
+    */
+
+    clearInterval(timerPoll);
+    timerPoll = null;
+
+    await signIn();
+
+    setConn(
+      false,
+      "Waiting for ESP32…"
+    );
+
+    addLog(
+      "Firebase connected"
+    );
+
+    startSync();
+
+  }catch(e){
+
+    setConn(
+      false,
+      "Firebase error"
+    );
+
+    console.error(
+      "Firebase Authentication Error:",
+      e
+    );
+
+    alertBox(
+      "setAlert",
+      e.message,
+      "error"
+    );
+  }
+}
+
+
+/* ============================================================
+   START SYNC
+   ============================================================ */
+
+function startSync(){
+
+  clearInterval(timerPoll);
+
+  sync();
+
+  timerPoll =
+    setInterval(
+      sync,
+      3000
+    );
+}
+
+
+/* ============================================================
+   SYNC FIREBASE → WEBSITE
+   ============================================================ */
+
+async function sync(){
+
+  try{
+
+    const d =
+      await api(
+        "GET",
+        "incubator"
+      ) || {};
+
+
+    sen =
+      d.sensors || {};
+
+    ctl =
+      d.control || {};
+
+
+    /* ======================================================
+       HEARTBEAT FIX
+       
+       ESP32:
+       heartbeatAt = UNIX SECONDS
+
+       Browser:
+       Date.now() = MILLISECONDS
+
+       So we convert seconds → milliseconds.
+       ====================================================== */
+
+    let heartbeat =
+      Number(
+        sen.heartbeatAt
+      ) || 0;
+
+
+    /*
+       If number looks like Unix seconds,
+       convert to milliseconds.
+    */
+
+    if(
+      heartbeat > 0 &&
+      heartbeat < 100000000000
+    ){
+
+      heartbeat *= 1000;
+    }
+
+
+    sen.heartbeatAt =
+      heartbeat;
+
+
+    /*
+       ESP32 considered online
+       if heartbeat is less than 30 seconds old.
+    */
+
+    const alive =
+      heartbeat > 0 &&
+      (
+        Date.now() -
+        heartbeat <
+        30000
+      );
+
+
+    setConn(
+      alive,
+      alive
+        ? "ESP32 Online"
+        : "ESP32 Offline"
+    );
+
+
+    renderSensors();
+
+    renderControls();
+
+    pushHistory();
+
+  }catch(e){
+
+    setConn(
+      false,
+      "Sync error"
+    );
+
+    console.error(
+      "Firebase Sync Error:",
+      e
+    );
+  }
+}
+
+
+/* ============================================================
+   RENDER SENSORS
+   ============================================================ */
+
+function renderSensors(){
+
+  const t =
+    Number(sen.temperature);
+
+  const h =
+    Number(sen.humidity);
+
+
+  $("tempV").textContent =
+    isFinite(t)
+      ? t.toFixed(1)
+      : "--";
+
+  $("humV").textContent =
+    isFinite(h)
+      ? h.toFixed(1)
+      : "--";
+
+
+  const tBad =
+    isFinite(t) &&
+    Math.abs(t - tgt.t) >
+    tgt.tt;
+
+
+  const hBad =
+    isFinite(h) &&
+    Math.abs(h - tgt.h) >
+    tgt.th;
+
+
+  $("tempCard")
+    .classList
+    .toggle("warn",tBad);
+
+  $("humCard")
+    .classList
+    .toggle("warn",hBad);
+
+
+  if(
+    tBad &&
+    !lastAl.t
+  ){
+
+    alertBox(
+      "alertBox",
+      "Temperature out of range: " +
+      t.toFixed(1) +
+      " °C",
+      "warning"
+    );
+
+    addLog(
+      "Temp alert " +
+      t.toFixed(1) +
+      " °C"
+    );
+  }
+
+
+  if(
+    hBad &&
+    !lastAl.h
+  ){
+
+    alertBox(
+      "alertBox",
+      "Humidity out of range: " +
+      h.toFixed(1) +
+      " %",
+      "warning"
+    );
+
+    addLog(
+      "Humidity alert " +
+      h.toFixed(1) +
+      " %"
+    );
+  }
+
+
+  lastAl = {
+    t:tBad,
+    h:hBad
+  };
+
+
+  $("pumpV").textContent =
+    sen.pumpOn
+      ? "ON"
+      : "OFF";
+
+
+  $("motorV").textContent =
+    sen.motorOn
+      ? "ON"
+      : "OFF";
+
+
+  $("lastUpd").textContent =
+    fmtTime(
+      sen.heartbeatAt
+    );
+}
+
+
+/* ============================================================
+   RENDER CONTROLS
+   ============================================================ */
+
+function renderControls(){
+
+  const auto =
+    String(
+      ctl.mode ||
+      "AUTO"
+    ).toUpperCase() ===
+    "AUTO";
+
+
+  $("mAuto")
+    .classList
+    .toggle(
+      "active",
+      auto
+    );
+
+
+  $("mMan")
+    .classList
+    .toggle(
+      "active",
+      !auto
+    );
+
+
+  $("infoMode").textContent =
+    auto
+      ? "AUTO"
+      : "MANUAL";
+
+
+  setSw(
+    "pumpSw",
+    ctl.pumpRequest
+  );
+
+  setSw(
+    "motorSw",
+    ctl.motorRequest
+  );
+
+  setSw(
+    "pumpOverviewSw",
+    ctl.pumpRequest
+  );
+
+  setSw(
+    "motorOverviewSw",
+    ctl.motorRequest
+  );
+
+
+  const p =
+    ctl.pumpTimer || {};
+
+  const m =
+    ctl.motorTimer || {};
+
+
+  setSw(
+    "pEn",
+    p.enabled
+  );
+
+  setSw(
+    "mEn",
+    m.enabled
+  );
+
+
+  /*
+     SAFETY FIX
+
+     document.activeElement may theoretically
+     be null. So don't directly use:
+     
+     document.activeElement.tagName
+     
+     without checking it first.
+  */
+
+  if(
+    !document.activeElement ||
+    document.activeElement.tagName !== "INPUT"
+  ){
+
+    if(
+      p.intervalMin
+    ){
+
+      $("pInt").value =
+        p.intervalMin;
+    }
+
+
+    if(
+      p.durationSec
+    ){
+
+      $("pDur").value =
+        p.durationSec;
+    }
+
+
+    if(
+      m.intervalMin
+    ){
+
+      $("mInt").value =
+        m.intervalMin;
+    }
+
+
+    if(
+      m.durationSec
+    ){
+
+      $("mDur").value =
+        m.durationSec;
+    }
+  }
+
+
+  $("infoPT").textContent =
+    p.enabled
+      ? `every ${p.intervalMin} min / ${p.durationSec} s`
+      : "OFF";
+
+
+  $("infoMT").textContent =
+    m.enabled
+      ? `every ${m.intervalMin} min / ${m.durationSec} s`
+      : "OFF";
+}
+
+
+/* ============================================================
+   PROGRESS
+   ============================================================ */
+
+function renderProgress(){
+
+  if(!tgt.start){
+
+    $("incPct").textContent =
+      "0%";
+
+    $("incDays").textContent =
+      "Day 0 / " +
+      tgt.days;
+
+    $("incBar").style.width =
+      "0";
+
+    return;
+  }
+
+
+  const d =
+    Math.max(
+      0,
+      (
+        Date.now() -
+        new Date(
+          tgt.start +
+          "T00:00:00"
+        )
+      ) / 864e5
+    );
+
+
+  const pct =
+    Math.min(
+      100,
+      d / tgt.days * 100
+    );
+
+
+  $("incPct").textContent =
+    Math.round(pct) +
+    "%";
+
+
+  $("incDays").textContent =
+    "Day " +
+    Math.min(
+      tgt.days,
+      Math.floor(d) + 1
+    ) +
+    " / " +
+    tgt.days;
+
+
+  $("incBar").style.width =
+    pct + "%";
+}
+
+
+/* ============================================================
+   CONTROLS
+   ============================================================ */
+
+async function setMode(m){
+
+  try{
+
+    await api(
+      "PUT",
+      "incubator/control/mode",
+      m
+    );
+
+    ctl.mode = m;
+
+    renderControls();
+
+    addLog(
+      "Mode → " + m
+    );
+
+  }catch(e){
+
+    alertBox(
+      "timerAlert",
+      e.message,
+      "error"
+    );
+  }
+}
+
+
+async function toggleReq(k){
+
+  if(
+    String(
+      ctl.mode ||
+      "AUTO"
+    ).toUpperCase() !==
+    "MANUAL"
+  ){
+
+    alertBox(
+      "timerAlert",
+      "Switch to MANUAL mode first.",
+      "info"
+    );
+
+    return;
+  }
+
+
+  try{
+
+    const v =
+      !ctl[k];
+
+
+    await api(
+      "PUT",
+      "incubator/control/" + k,
+      v
+    );
+
+
+    ctl[k] = v;
+
+    renderControls();
+
+    addLog(
+      k +
+      " → " +
+      (v ? "ON" : "OFF")
+    );
+
+  }catch(e){
+
+    alertBox(
+      "timerAlert",
+      e.message,
+      "error"
+    );
+  }
+}
+
+
+async function toggleOverviewReq(k){
+
+  if(
+    String(
+      ctl.mode ||
+      "AUTO"
+    ).toUpperCase() !==
+    "MANUAL"
+  ){
+
+    alertBox(
+      "alertBox",
+      "Switch to MANUAL mode first.",
+      "info"
+    );
+
+    return;
+  }
+
+
+  try{
+
+    const v =
+      !ctl[k];
+
+
+    await api(
+      "PUT",
+      "incubator/control/" + k,
+      v
+    );
+
+
+    ctl[k] = v;
+
+    renderControls();
+
+    addLog(
+      k +
+      " → " +
+      (v ? "ON" : "OFF")
+    );
+
+  }catch(e){
+
+    alertBox(
+      "alertBox",
+      e.message,
+      "error"
+    );
+  }
+}
+
+
+async function toggleTimer(w){
+
+  const k =
+    w + "Timer";
+
+
+  try{
+
+    const v =
+      !(
+        ctl[k] &&
+        ctl[k].enabled
+      );
+
+
+    await api(
+      "PATCH",
+      "incubator/control/" + k,
+      {
+        enabled:v
+      }
+    );
+
+
+    ctl[k] =
+      Object.assign(
+        ctl[k] || {},
+        {
+          enabled:v
+        }
+      );
+
+
+    renderControls();
+
+    addLog(
+      w +
+      " timer " +
+      (
+        v
+          ? "enabled"
+          : "disabled"
+      )
+    );
+
+  }catch(e){
+
+    alertBox(
+      "timerAlert",
+      e.message,
+      "error"
+    );
+  }
+}
+
+
+async function saveTimer(w){
+
+  const i =
+    Math.floor(
+      Number(
+        $(w[0] + "Int").value
+      )
+    );
+
+
+  const d =
+    Math.floor(
+      Number(
+        $(w[0] + "Dur").value
+      )
+    );
+
+
+  if(
+    !(i >= 1) ||
+    !(d >= 1)
+  ){
+
+    alertBox(
+      "timerAlert",
+      "Interval and duration must be at least 1.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  if(
+    d >
+    i * 60
+  ){
+
+    alertBox(
+      "timerAlert",
+      "Run time cannot be longer than the interval.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  try{
+
+    await api(
+      "PATCH",
+      "incubator/control/" +
+      w +
+      "Timer",
+      {
+        enabled:true,
+        intervalMin:i,
+        durationSec:d
+      }
+    );
+
+
+    addLog(
+      `${w} timer saved: every ${i} min for ${d} s`
+    );
+
+
+    alertBox(
+      "timerAlert",
+      w +
+      " timer saved and enabled.",
+      "success"
+    );
+
+
+    sync();
+
+  }catch(e){
+
+    alertBox(
+      "timerAlert",
+      e.message,
+      "error"
+    );
+  }
+}
+
+
+/* ============================================================
+   HISTORY
+   ============================================================ */
+
+function pushHistory(){
+
+  const t =
+    Number(
+      sen.temperature
+    );
+
+  const h =
+    Number(
+      sen.humidity
+    );
+
+
+  if(
+    !isFinite(t) ||
+    !isFinite(h)
+  ){
+
+    return;
+  }
+
+
+  const last =
+    hist[hist.length - 1];
+
+
+  if(
+    last &&
+    Date.now() -
+    last.time <
+    10000
+  ){
+
+    return;
+  }
+
+
+  hist.push({
+    time:Date.now(),
+    temperature:t,
+    humidity:h,
+    pump:!!sen.pumpOn,
+    motor:!!sen.motorOn
+  });
+
+
+  if(
+    hist.length >
+    8000
+  ){
+
+    hist =
+      hist.slice(-8000);
+  }
+
+
+  localStorage.setItem(
+    K.hist,
+    JSON.stringify(hist)
+  );
+
+
+  if(
+    $("graph").classList.contains("active") ||
+    $("analytics").classList.contains("active")
+  ){
+
+    refreshAll();
+  }
+}
+
+
+function view(){
+
+  const from =
+    rangeH
+      ? Date.now() -
+        rangeH * 36e5
+      : 0;
+
+
+  return hist.filter(
+    x =>
+      x.time >= from
+  );
+}
+
+
+function setRange(h,b){
+
+  rangeH = h;
+
+
+  document
+    .querySelectorAll(
+      "#rangeBtns button"
+    )
+    .forEach(
+      x =>
+        x.classList.remove(
+          "active"
+        )
+    );
+
+
+  b.classList.add(
+    "active"
+  );
+
+
+  refreshAll();
+}
+
+
+function clearHistory(){
+
+  if(
+    !confirm(
+      "Delete all saved history?"
+    )
+  ){
+
+    return;
+  }
+
+
+  hist = [];
+
+  localStorage.removeItem(
+    K.hist
+  );
+
+  refreshAll();
+}
+
+
+/* ============================================================
+   CHART
+   ============================================================ */
+
+function mkChart(
+  id,
+  type,
+  labels,
+  sets
+){
+
+  if(
+    charts[id]
+  ){
+
+    charts[id].destroy();
+  }
+
+
+  charts[id] =
+    new Chart(
+      $(id),
+      {
+        type,
+
+        data:{
+          labels,
+          datasets:sets
+        },
+
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          animation:false,
+
+          interaction:{
+            mode:"index",
+            intersect:false
+          },
+
+          plugins:{
+            legend:{
+              labels:{
+                color:cssv("--ct")
+              }
+            }
+          },
+
+          scales:{
+            x:{
+              ticks:{
+                color:cssv("--ct2"),
+                maxTicksLimit:8
+              },
+
+              grid:{
+                color:cssv("--cg")
+              }
+            },
+
+            y:{
+              position:"left",
+
+              title:{
+                display:true,
+                text:"Temp °C",
+                color:"#ef9a9a"
+              },
+
+              ticks:{
+                color:cssv("--ct2")
+              },
+
+              grid:{
+                color:cssv("--cg")
+              }
+            },
+
+            y2:{
+              position:"right",
+
+              title:{
+                display:true,
+                text:"Humidity %",
+                color:"#90caf9"
+              },
+
+              ticks:{
+                color:cssv("--ct2")
+              },
+
+              grid:{
+                display:false
+              }
+            }
+          }
+        }
+      }
+    );
+}
+
+
+function refreshAll(){
+
+  const v =
+    view();
+
+
+  const lab =
+    v.map(
+      x =>
+        new Date(
+          x.time
+        ).toLocaleTimeString(
+          "en-MY",
+          {
+            hour:"2-digit",
+            minute:"2-digit"
+          }
+        )
+    );
+
+
+  if(
+    $("graph").classList.contains("active")
+  ){
+
+    mkChart(
+      "mainChart",
+      "line",
+      lab,
+      [
+        {
+          label:"Temperature °C",
+          data:v.map(
+            x =>
+              x.temperature
+          ),
+          borderColor:"#ef5350",
+          backgroundColor:"#ef5350",
+          tension:.3,
+          pointRadius:0,
+          borderWidth:2,
+          yAxisID:"y"
+        },
+
+        {
+          label:"Humidity %",
+          data:v.map(
+            x =>
+              x.humidity
+          ),
+          borderColor:"#42a5f5",
+          backgroundColor:"#42a5f5",
+          tension:.3,
+          pointRadius:0,
+          borderWidth:2,
+          yAxisID:"y2"
+        }
+      ]
+    );
+  }
+
+
+  if(
+    $("analytics").classList.contains("active")
+  ){
+
+    renderAnalytics(v);
+  }
+}
+
+
+/* ============================================================
+   ANALYTICS
+   ============================================================ */
+
+function stats(a){
+
+  if(
+    !a.length
+  ){
+
+    return null;
+  }
+
+
+  const n =
+    a.length;
+
+
+  const s =
+    a.reduce(
+      (p,c) =>
+        p + c,
+      0
+    );
+
+
+  const m =
+    s / n;
+
+
+  const sd =
+    Math.sqrt(
+      a.reduce(
+        (p,c) =>
+          p +
+          (c-m)**2,
+        0
+      ) / n
+    );
+
+
+  return {
+    n,
+    avg:m,
+    min:Math.min(...a),
+    max:Math.max(...a),
+    sd
+  };
+}
+
+
+function hourly(v){
+
+  const g = {};
+
+
+  v.forEach(x=>{
+
+    const d =
+      new Date(
+        x.time
+      );
+
+    d.setMinutes(
+      0,
+      0,
+      0
+    );
+
+
+    const k =
+      d.getTime();
+
+
+    (
+      g[k] ||
+      (g[k]=[])
+    ).push(x);
+
+  });
+
+
+  return Object
+    .keys(g)
+    .sort(
+      (a,b)=>
+        a-b
+    )
+    .map(k=>{
+
+      const r =
+        g[k];
+
+
+      return {
+        hour:Number(k),
+
+        temperature:
+          r.reduce(
+            (p,c)=>
+              p+c.temperature,
+            0
+          ) /
+          r.length,
+
+        humidity:
+          r.reduce(
+            (p,c)=>
+              p+c.humidity,
+            0
+          ) /
+          r.length,
+
+        count:
+          r.length
+      };
+
+    });
+}
+
+
+function analyse(v){
+
+  const ts =
+    stats(
+      v.map(
+        x =>
+          x.temperature
+      )
+    );
+
+
+  const hs =
+    stats(
+      v.map(
+        x =>
+          x.humidity
+      )
+    );
+
+
+  if(!ts){
+
+    return null;
+  }
+
+
+  const tIn =
+    v.filter(
+      x =>
+        Math.abs(
+          x.temperature -
+          tgt.t
+        ) <= tgt.tt
+    ).length /
+    v.length *
+    100;
+
+
+  const hIn =
+    v.filter(
+      x =>
+        Math.abs(
+          x.humidity -
+          tgt.h
+        ) <= tgt.th
+    ).length /
+    v.length *
+    100;
+
+
+  let tAl = 0;
+  let hAl = 0;
+
+  let pt = false;
+  let ph = false;
+
+
+  v.forEach(x=>{
+
+    const tb =
+      Math.abs(
+        x.temperature -
+        tgt.t
+      ) >
+      tgt.tt;
+
+
+    const hb =
+      Math.abs(
+        x.humidity -
+        tgt.h
+      ) >
+      tgt.th;
+
+
+    if(
+      tb &&
+      !pt
+    ){
+
+      tAl++;
+    }
+
+
+    if(
+      hb &&
+      !ph
+    ){
+
+      hAl++;
+    }
+
+
+    pt = tb;
+    ph = hb;
+
+  });
+
+
+  return {
+    ts,
+    hs,
+    tIn,
+    hIn,
+    tAl,
+    hAl,
+
+    stab:
+      Math.max(
+        0,
+        100 -
+        ts.sd * 40
+      ),
+
+    pumpRuns:
+      v.filter(
+        (x,i)=>
+          x.pump &&
+          (
+            i===0 ||
+            !v[i-1].pump
+          )
+      ).length,
+
+    motorRuns:
+      v.filter(
+        (x,i)=>
+          x.motor &&
+          (
+            i===0 ||
+            !v[i-1].motor
+          )
+      ).length
+  };
+}
+
+
+function renderAnalytics(v){
+
+  const a =
+    analyse(v);
+
+
+  if(!a){
+
+    $("anCards").innerHTML =
+      '<div class="card" style="grid-column:1/-1">No data yet. Connect Firebase and wait for readings.</div>';
+
+    return;
+  }
+
+
+  const c =
+    (
+      l,
+      val,
+      u,
+      s
+    ) =>
+      `
+      <div class="card">
+        <div class="lbl">${l}</div>
+        <span class="val" style="font-size:28px">${val}</span>
+        <span class="unit">${u}</span>
+        <div class="sub">${s}</div>
+      </div>
+      `;
+
+
+  $("anCards").innerHTML =
+
+    c(
+      "AVG TEMPERATURE",
+      a.ts.avg.toFixed(2),
+      "°C",
+      "min " +
+      a.ts.min.toFixed(1) +
+      " / max " +
+      a.ts.max.toFixed(1)
+    )
+
+    +
+
+    c(
+      "AVG HUMIDITY",
+      a.hs.avg.toFixed(1),
+      "%",
+      "min " +
+      a.hs.min.toFixed(1) +
+      " / max " +
+      a.hs.max.toFixed(1)
+    )
+
+    +
+
+    c(
+      "TEMP STD. DEVIATION",
+      a.ts.sd.toFixed(2),
+      "°C",
+      "lower = steadier"
+    )
+
+    +
+
+    c(
+      "READINGS",
+      a.ts.n,
+      "",
+      "pump runs " +
+      a.pumpRuns +
+      " · motor runs " +
+      a.motorRuns
+    );
+
+
+  $("tInR").textContent =
+    a.tIn.toFixed(1) +
+    "%";
+
+
+  $("hInR").textContent =
+    a.hIn.toFixed(1) +
+    "%";
+
+
+  $("tBar").style.width =
+    a.tIn + "%";
+
+
+  $("hBar").style.width =
+    a.hIn + "%";
+
+
+  $("tAl").textContent =
+    a.tAl;
+
+
+  $("hAl").textContent =
+    a.hAl;
+
+
+  $("stab").textContent =
+    a.stab.toFixed(0) +
+    " / 100";
+
+
+  const hr =
+    hourly(v);
+
+
+  mkChart(
+    "hourChart",
+    "bar",
+
+    hr.map(
+      x =>
+        new Date(
+          x.hour
+        ).toLocaleString(
+          "en-MY",
+          {
+            day:"2-digit",
+            month:"short",
+            hour:"2-digit",
+            minute:"2-digit"
+          }
+        )
+    ),
+
+    [
+      {
+        label:"Temp °C",
+        data:
+          hr.map(
+            x =>
+              +x.temperature.toFixed(2)
+          ),
+        backgroundColor:"#ef5350",
+        yAxisID:"y"
+      },
+
+      {
+        label:"Humidity %",
+        data:
+          hr.map(
+            x =>
+              +x.humidity.toFixed(2)
+          ),
+        backgroundColor:"#42a5f5",
+        yAxisID:"y2"
+      }
+    ]
+  );
+}
+
+
+/* ============================================================
+   EXPORT
+   ============================================================ */
+
+function exportExcel(){
+
+  const v =
+    view();
+
+
+  if(!v.length){
+
+    alert(
+      "No history to export yet."
+    );
+
+    return;
+  }
+
+
+  const wb =
+    XLSX.utils.book_new();
+
+
+  const h =
+    v.map(
+      x =>
+        ({
+          "Date & Time":
+            fmtTime(x.time),
+
+          "Temperature (°C)":
+            x.temperature,
+
+          "Humidity (%)":
+            x.humidity,
+
+          "Pump":
+            x.pump
+              ? "ON"
+              : "OFF",
+
+          "Motor":
+            x.motor
+              ? "ON"
+              : "OFF"
+        })
+    );
+
+
+  XLSX.utils.book_append_sheet(
+    wb,
+    XLSX.utils.json_to_sheet(h),
+    "History"
+  );
+
+
+  const hr =
+    hourly(v).map(
+      x =>
+        ({
+          "Hour":
+            fmtTime(x.hour),
+
+          "Avg Temp (°C)":
+            +x.temperature.toFixed(2),
+
+          "Avg Humidity (%)":
+            +x.humidity.toFixed(2),
+
+          "Readings":
+            x.count
+        })
+    );
+
+
+  XLSX.utils.book_append_sheet(
+    wb,
+    XLSX.utils.json_to_sheet(hr),
+    "Hourly"
+  );
+
+
+  const a =
+    analyse(v);
+
+
+  const s = [
+
+    [
+      "Metric",
+      "Temperature",
+      "Humidity"
+    ],
+
+    [
+      "Average",
+      +a.ts.avg.toFixed(2),
+      +a.hs.avg.toFixed(2)
+    ],
+
+    [
+      "Minimum",
+      a.ts.min,
+      a.hs.min
+    ],
+
+    [
+      "Maximum",
+      a.ts.max,
+      a.hs.max
+    ],
+
+    [
+      "Std. deviation",
+      +a.ts.sd.toFixed(3),
+      +a.hs.sd.toFixed(3)
+    ],
+
+    [
+      "Target",
+      tgt.t,
+      tgt.h
+    ],
+
+    [
+      "Tolerance (±)",
+      tgt.tt,
+      tgt.th
+    ],
+
+    [
+      "Time in range (%)",
+      +a.tIn.toFixed(1),
+      +a.hIn.toFixed(1)
+    ],
+
+    [
+      "Out-of-range alerts",
+      a.tAl,
+      a.hAl
+    ],
+
+    [],
+
+    [
+      "Readings",
+      a.ts.n
+    ],
+
+    [
+      "Pump runs",
+      a.pumpRuns
+    ],
+
+    [
+      "Motor runs",
+      a.motorRuns
+    ],
+
+    [
+      "Stability score",
+      +a.stab.toFixed(0)
+    ],
+
+    [
+      "From",
+      fmtTime(v[0].time)
+    ],
+
+    [
+      "To",
+      fmtTime(
+        v[v.length-1].time
+      )
+    ]
+
+  ];
+
+
+  XLSX.utils.book_append_sheet(
+    wb,
+    XLSX.utils.aoa_to_sheet(s),
+    "Summary"
+  );
+
+
+  XLSX.writeFile(
+    wb,
+    "incubator-history-" +
+    new Date()
+      .toISOString()
+      .slice(0,10) +
+    ".xlsx"
+  );
+}
+
+
+function exportCSV(){
+
+  const v =
+    view();
+
+
+  if(!v.length){
+
+    alert(
+      "No history to export yet."
+    );
+
+    return;
+  }
+
+
+  const csv =
+    [
+      "Time,Temperature,Humidity,Pump,Motor"
+    ]
+
+    .concat(
+      v.map(
+        x =>
+          [
+            fmtTime(x.time),
+            x.temperature,
+            x.humidity,
+            x.pump ? 1 : 0,
+            x.motor ? 1 : 0
+          ]
+          .map(
+            q =>
+              '"' + q + '"'
+          )
+          .join(",")
+      )
+    )
+    .join("\n");
+
+
+  const a =
+    document.createElement("a");
+
+
+  a.href =
+    URL.createObjectURL(
+      new Blob(
+        [csv],
+        {
+          type:"text/csv"
+        }
+      )
+    );
+
+
+  a.download =
+    "incubator-history.csv";
+
+
+  a.click();
+}
+
+
+/* ============================================================
+   SETTINGS
+   ============================================================ */
+
+function saveConfig(){
+
+  cfg.dbUrl =
+    $("cfgUrl")
+      .value
+      .trim();
+
+
+  cfg.apiKey =
+    $("cfgKey")
+      .value
+      .trim();
+
+
+  if(
+    !cfg.dbUrl ||
+    !cfg.apiKey
+  ){
+
+    alertBox(
+      "setAlert",
+      "Enter both the Database URL and API key.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  localStorage.setItem(
+    K.cfg,
+    JSON.stringify(cfg)
+  );
+
+
+  alertBox(
+    "setAlert",
+    "Saved. Connecting…",
+    "success"
+  );
+
+
+  connect();
+}
+
+
+function resetConfig(){
+
+  if(
+    !confirm(
+      "Reset Firebase configuration?"
+    )
+  ){
+
+    return;
+  }
+
+
+  localStorage.removeItem(
+    K.cfg
+  );
+
+
+  cfg = {
+    dbUrl:"",
+    apiKey:""
+  };
+
+
+  $("cfgUrl").value =
+    "";
+
+  $("cfgKey").value =
+    "";
+
+
+  token = "";
+
+  clearInterval(
+    timerPoll
+  );
+
+  timerPoll = null;
+
+
+  setConn(
+    false,
+    "Not configured"
+  );
+}
+
+
+function saveTargets(){
+
+  tgt = {
+
+    t:
+      Number(
+        $("tgtT").value
+      ) || 37.5,
+
+    tt:
+      Number(
+        $("tolT").value
+      ) || 0.5,
+
+    h:
+      Number(
+        $("tgtH").value
+      ) || 55,
+
+    th:
+      Number(
+        $("tolH").value
+      ) || 5,
+
+    start:
+      $("startD").value,
+
+    days:
+      Number(
+        $("totD").value
+      ) || 21
+  };
+
+
+  localStorage.setItem(
+    K.tgt,
+    JSON.stringify(tgt)
+  );
+
+
+  $("tTarget").textContent =
+    tgt.t;
+
+
+  $("hTarget").textContent =
+    tgt.h;
+
+
+  renderProgress();
+
+
+  alertBox(
+    "setAlert",
+    "Targets saved.",
+    "success"
+  );
+}
+
+
+/* ============================================================
+   INIT
+   ============================================================ */
+
+(function init(){
+
+  try{
+
+    cfg =
+      Object.assign(
+        cfg,
+        JSON.parse(
+          localStorage.getItem(
+            K.cfg
+          )
+        ) || {}
+      );
+
+  }catch(e){}
+
+
+  try{
+
+    hist =
+      JSON.parse(
+        localStorage.getItem(
+          K.hist
+        )
+      ) || [];
+
+  }catch(e){}
+
+
+  try{
+
+    logs =
+      JSON.parse(
+        localStorage.getItem(
+          K.log
+        )
+      ) || [];
+
+  }catch(e){}
+
+
+  try{
+
+    tgt =
+      Object.assign(
+        tgt,
+        JSON.parse(
+          localStorage.getItem(
+            K.tgt
+          )
+        ) || {}
+      );
+
+  }catch(e){}
+
+
+  $("cfgUrl").value =
+    cfg.dbUrl;
+
+
+  $("cfgKey").value =
+    cfg.apiKey;
+
+
+  $("tgtT").value =
+    tgt.t;
+
+
+  $("tolT").value =
+    tgt.tt;
+
+
+  $("tgtH").value =
+    tgt.h;
+
+
+  $("tolH").value =
+    tgt.th;
+
+
+  $("startD").value =
+    tgt.start;
+
+
+  $("totD").value =
+    tgt.days;
+
+
+  $("tTarget").textContent =
+    tgt.t;
+
+
+  $("hTarget").textContent =
+    tgt.h;
+
+
+  renderLog();
+
+  renderProgress();
+
+
+  setInterval(
+    renderProgress,
+    60000
+  );
+
+
+  /*
+     Connect automatically
+     only if Firebase config exists.
+  */
+
+  if(
+    cfg.dbUrl &&
+    cfg.apiKey
+  ){
+
+    connect();
+
+  }else{
+
+    setConn(
+      false,
+      "Not configured"
+    );
+  }
+
+})();
+
+</script>
+
+<script>
+
+/* ============================================================
+   THEME / GAUGES
+   ============================================================ */
+
+function cssv(n){
+
+  return getComputedStyle(
+    document.body
+  )
+  .getPropertyValue(n)
+  .trim();
+}
+
+
+/* ============================================================
+   RING GAUGES
+   ============================================================ */
+
+function gauges(){
+
+  const t =
+    Number(
+      sen.temperature
+    );
+
+
+  const h =
+    Number(
+      sen.humidity
+    );
+
+
+  const C =
+    251.3;
+
+
+  const ring =
+    (id,p) =>
+      $(id).setAttribute(
+        "stroke-dashoffset",
+        C *
+        (
+          1 -
+          Math.max(
+            0,
+            Math.min(
+              1,
+              p
+            )
+          )
+        )
+      );
+
+
+  const dlt =
+    (
+      id,
+      v,
+      target,
+      tol,
+      u
+    ) => {
+
+      const e =
+        $(id);
+
+
+      if(
+        !isFinite(v)
+      ){
+
+        e.textContent =
+          "Waiting for data";
+
+        e.className =
+          "delta";
+
+        return;
+      }
+
+
+      const d =
+        v - target;
+
+
+      const ok =
+        Math.abs(d) <= tol;
+
+
+      e.className =
+        "delta" +
+        (
+          ok
+            ? ""
+            : " bad"
+        );
+
+
+      e.textContent =
+        ok
+          ? "On target"
+          :
+            (
+              d > 0
+                ? "+"
+                : ""
+            ) +
+            d.toFixed(1) +
+            " " +
+            u +
+            (
+              d > 0
+                ? " above target"
+                : " below target"
+            );
+    };
+
+
+  ring(
+    "tempRing",
+    isFinite(t)
+      ? (t - 30) / 15
+      : 0
+  );
+
+
+  ring(
+    "humRing",
+    isFinite(h)
+      ? h / 100
+      : 0
+  );
+
+
+  dlt(
+    "tempDelta",
+    t,
+    tgt.t,
+    tgt.tt,
+    "°C"
+  );
+
+
+  dlt(
+    "humDelta",
+    h,
+    tgt.h,
+    tgt.th,
+    "%"
+  );
+
+
+  $("pumpCard")
+    .classList
+    .toggle(
+      "on",
+      !!sen.pumpOn
+    );
+
+
+  $("motorCard")
+    .classList
+    .toggle(
+      "on",
+      !!sen.motorOn
+    );
+}
+
+
+const _rs =
+  renderSensors;
+
+
+renderSensors =
+  function(){
+
+    _rs();
+
+    gauges();
+  };
+
+
+/* ============================================================
+   DAY / NIGHT
+   ============================================================ */
+
+(function(){
+
+  let pref =
+    localStorage.getItem(
+      "nw_theme"
+    ) || "auto";
+
+
+  const isDay =
+    () => {
+
+      const h =
+        new Date()
+          .getHours();
+
+      return h >= 6 &&
+             h < 18;
+    };
+
+
+  function apply(){
+
+    const th =
+      pref === "auto"
+        ? (
+            isDay()
+              ? "day"
+              : "night"
+          )
+        : pref;
+
+
+    if(
+      document.body.dataset.theme !==
+      th
+    ){
+
+      document.body.dataset.theme =
+        th;
+
+      try{
+        refreshAll();
+      }catch(e){}
+    }
+
+
+    $("themeBtn").textContent =
+      pref === "auto"
+        ? "Auto · " +
+          (
+            th === "day"
+              ? "Day"
+              : "Night"
+          )
+        :
+          (
+            th === "day"
+              ? "Day"
+              : "Night"
+          );
+  }
+
+
+  window.cycleTheme =
+    function(){
+
+      pref =
+        {
+          auto:"day",
+          day:"night",
+          night:"auto"
+        }[pref];
+
+
+      localStorage.setItem(
+        "nw_theme",
+        pref
+      );
+
+
+      apply();
+    };
+
+
+  function tick(){
+
+    const d =
+      new Date();
+
+
+    const h =
+      d.getHours();
+
+
+    const hello =
+      h < 12
+        ? "Good morning"
+        : h < 18
+          ? "Good afternoon"
+          : "Good evening";
+
+
+    $("clock").textContent =
+      hello +
+      " · " +
+      d.toLocaleDateString(
+        "en-MY",
+        {
+          weekday:"long",
+          day:"numeric",
+          month:"long"
+        }
+      ) +
+      " · " +
+      d.toLocaleTimeString(
+        "en-MY",
+        {
+          hour:"2-digit",
+          minute:"2-digit"
+        }
+      );
+
+
+    apply();
+  }
+
+
+  tick();
+
+  setInterval(
+    tick,
+    30000
+  );
+
+  gauges();
+
+})();
+
+</script>
+
+<script>
+
+/* ============================================================
+   INTRO
+   ============================================================ */
+
+(function(){
+
+  const intro =
+    document.getElementById(
+      "intro"
+    );
+
+
+  document.body.classList.add(
+    "intro-on"
+  );
+
+
+  function enter(){
+
+    if(
+      !intro.isConnected
+    ){
+
+      return;
+    }
+
+
+    intro.classList.add(
+      "out"
+    );
+
+
+    window.sunStart &&
+      sunStart();
+
+
+    document.body.classList.remove(
+      "intro-on"
+    );
+
+
+    setTimeout(
+      () =>
+        intro.remove(),
+      1000
+    );
+  }
+
+
+  intro.addEventListener(
+    "click",
+    enter
+  );
+
+
+  setTimeout(
+    enter,
+    matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches
+      ? 800
+      : 5400
+  );
+
+})();
+
+</script>
+
+<script>
+
+/* ============================================================
+   CINEMATIC SKY ENGINE
+   ============================================================ */
+
+(function(){
+
+const body=document.body;
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const mo=reduce?0:1;
+const dpr=Math.min(window.devicePixelRatio||1,1.5);
+
+const cD=document.getElementById("cvDay");
+const cN=document.getElementById("cvNight");
+
+const xD=cD.getContext("2d");
+const xN=cN.getContext("2d");
+
+let W=0,H=0,HY=0;
+let t0=performance.now();
+
+let ridD=[];
+let ridN=[];
+let clouds=[];
+let stars=[];
+let stat=null;
+let metS=[];
+
+let nextM=2;
+
+let spW=null;
+let spP=null;
+
+
+window.sunStart=()=>{
+  t0=performance.now();
+};
+
+
+const lerp=(a,b,t)=>
+  a+(b-a)*t;
+
+
+const cl=(v,a=0,b=1)=>
+  Math.max(
+    a,
+    Math.min(b,v)
+  );
+
+
+const ease=t=>
+  1-Math.pow(
+    1-t,
+    3
+  );
+
+
+const hx=c=>
+  [1,3,5].map(
+    i =>
+      parseInt(
+        c.slice(i,i+2),
+        16
+      )
+  );
+
+
+const mix=(a,b,t)=>{
+
+  const A=hx(a);
+  const B=hx(b);
+
+  return "rgb(" +
+    A.map(
+      (v,i)=>
+        Math.round(
+          lerp(
+            v,
+            B[i],
+            t
+          )
+        )
+    ).join(",") +
+    ")";
+};
+
+
+function rnd(s){
+
+  return ()=>{
+    s =
+      s *
+      16807 %
+      2147483647;
+
+    return (
+      s-1
+    ) /
+    2147483646;
+  };
+}
+
+
+function ridge(
+  seed,
+  base,
+  amp,
+  rough
+){
+
+  const r =
+    rnd(seed);
+
+
+  const ph=[
+    r()*9,
+    r()*9,
+    r()*9,
+    r()*9
+  ];
+
+
+  const pts=[];
+
+
+  for(
+    let x=0;
+    x<=W+6;
+    x+=6
+  ){
+
+    const u =
+      x/W;
+
+
+    let v =
+      (
+        1 -
+        Math.abs(
+          Math.sin(
+            u*2.1*Math.PI+
+            ph[0]
+          )
+        )
+      )*.55;
+
+
+    v +=
+      (
+        1 -
+        Math.abs(
+          Math.sin(
+            u*5.3*Math.PI+
+            ph[1]
+          )
+        )
+      )*.25*rough;
+
+
+    v +=
+      Math.sin(
+        u*11.7*Math.PI+
+        ph[2]
+      )*.1*rough;
+
+
+    v +=
+      Math.sin(
+        u*27*Math.PI+
+        ph[3]
+      )*.04*rough;
+
+
+    pts.push([
+      x,
+      base-amp*v
+    ]);
+  }
+
+
+  return pts;
+}
+
+
+function path(x,pts){
+
+  x.beginPath();
+
+  x.moveTo(
+    0,
+    H
+  );
+
+
+  pts.forEach(
+    p =>
+      x.lineTo(
+        p[0],
+        p[1]
+      )
+  );
+
+
+  x.lineTo(
+    W+6,
+    H
+  );
+
+
+  x.closePath();
+}
+
+
+function sprite(col){
+
+  const c =
+    document.createElement(
+      "canvas"
+    );
+
+
+  c.width=460;
+  c.height=150;
+
+
+  const x =
+    c.getContext("2d");
+
+
+  const r =
+    rnd(7);
+
+
+  for(
+    let i=0;
+    i<22;
+    i++
+  ){
+
+    const cx =
+      60+r()*340;
+
+
+    const cy =
+      70+
+      (r()-.5)*40;
+
+
+    const rad =
+      28+r()*44;
+
+
+    const g =
+      x.createRadialGradient(
+        cx,
+        cy,
+        0,
+        cx,
+        cy,
+        rad
+      );
+
+
+    g.addColorStop(
+      0,
+      "rgba("+col+",.30)"
+    );
+
+
+    g.addColorStop(
+      1,
+      "rgba("+col+",0)"
+    );
+
+
+    x.save();
+
+    x.translate(
+      cx,
+      cy
+    );
+
+    x.scale(
+      1,
+      .42
+    );
+
+    x.translate(
+      -cx,
+      -cy
+    );
+
+    x.fillStyle=g;
+
+    x.beginPath();
+
+    x.arc(
+      cx,
+      cy,
+      rad,
+      0,
+      7
+    );
+
+    x.fill();
+
+    x.restore();
+  }
+
+
+  return c;
+}
+
+
+function mist(
+  x,
+  t,
+  col,
+  a,
+  y0
+){
+
+  for(
+    let i=0;
+    i<3;
+    i++
+  ){
+
+    const cx =
+      (
+        (
+          i*
+          W*
+          .5+
+          t*
+          (8+i*5)*
+          mo
+        ) %
+        (W*1.6)
+      ) -
+      W*.3;
+
+
+    const g =
+      x.createRadialGradient(
+        cx,
+        y0,
+        0,
+        cx,
+        y0,
+        W*.35
+      );
+
+
+    g.addColorStop(
+      0,
+      "rgba("+col+","+a+")"
+    );
+
+
+    g.addColorStop(
+      1,
+      "rgba("+col+",0)"
+    );
+
+
+    x.save();
+
+    x.translate(
+      0,
+      y0
+    );
+
+    x.scale(
+      1,
+      .12
+    );
+
+    x.translate(
+      0,
+      -y0
+    );
+
+    x.fillStyle=g;
+
+    x.fillRect(
+      cx-W*.4,
+      y0-W*.4,
+      W*.8,
+      W*.8
+    );
+
+    x.restore();
+  }
+}
+
+
+function buildNight(){
+
+  const c =
+    document.createElement(
+      "canvas"
+    );
+
+
+  c.width =
+    W*dpr;
+
+  c.height =
+    H*dpr;
+
+
+  const x =
+    c.getContext("2d");
+
+
+  x.setTransform(
+    dpr,
+    0,
+    0,
+    dpr,
+    0,
+    0
+  );
+
+
+  const r =
+    rnd(99);
+
+
+  let g =
+    x.createLinearGradient(
+      0,
+      0,
+      0,
+      H
+    );
+
+
+  g.addColorStop(
+    0,
+    "#01030a"
+  );
+
+
+  g.addColorStop(
+    .45,
+    "#060e24"
+  );
+
+
+  g.addColorStop(
+    .75,
+    "#10244a"
+  );
+
+
+  g.addColorStop(
+    1,
+    "#1d3a66"
+  );
+
+
+  x.fillStyle=g;
+
+  x.fillRect(
+    0,
+    0,
+    W,
+    H
+  );
+
+
+  x.save();
+
+  x.translate(
+    W*.45,
+    H*.3
+  );
+
+  x.rotate(-.5);
+
+
+  [
+    [W*.75,.16,"170,190,255",.2],
+    [W*.4,.2,"255,225,200",.16],
+    [W*.9,.1,"150,170,255",.1]
+  ]
+  .forEach(
+    ([rad,sc,col,al])=>{
+
+      x.save();
+
+      x.scale(
+        1,
+        sc
+      );
+
+
+      const gg =
+        x.createRadialGradient(
+          0,
+          0,
+          0,
+          0,
+          0,
+          rad
+        );
+
+
+      gg.addColorStop(
+        0,
+        "rgba("+col+","+al+")"
+      );
+
+
+      gg.addColorStop(
+        1,
+        "rgba("+col+",0)"
+      );
+
+
+      x.fillStyle=gg;
+
+      x.beginPath();
+
+      x.arc(
+        0,
+        0,
+        rad,
+        0,
+        7
+      );
+
+      x.fill();
+
+      x.restore();
+    }
+  );
+
+
+  for(
+    let i=0;
+    i<2200;
+    i++
+  ){
+
+    const u =
+      (r()-.5)*
+      W*
+      1.5;
+
+
+    const v =
+      (r()+r()+r()-1.5)*
+      H*.1;
+
+
+    const s =
+      r()<.1
+        ? 1.3
+        : .7;
+
+
+    x.fillStyle =
+      "rgba(220,230,255,"+
+      (.1+r()*.45).toFixed(2)+
+      ")";
+
+
+    x.fillRect(
+      u,
+      v,
+      s,
+      s
+    );
+  }
+
+
+  for(
+    let i=0;
+    i<5;
+    i++
+  ){
+
+    x.save();
+
+    x.translate(
+      (r()-.5)*W*.9,
+      (r()-.5)*H*.15
+    );
+
+    x.scale(
+      1,
+      .2
+    );
+
+
+    const dk =
+      x.createRadialGradient(
+        0,
+        0,
+        0,
+        0,
+        0,
+        W*.18
+      );
+
+
+    dk.addColorStop(
+      0,
+      "rgba(2,5,14,.32)"
+    );
+
+
+    dk.addColorStop(
+      1,
+      "rgba(2,5,14,0)"
+    );
+
+
+    x.fillStyle=dk;
+
+    x.beginPath();
+
+    x.arc(
+      0,
+      0,
+      W*.18,
+      0,
+      7
+    );
+
+    x.fill();
+
+    x.restore();
+  }
+
+
+  x.restore();
+
+
+  for(
+    let i=0;
+    i<380;
+    i++
+  ){
+
+    x.fillStyle =
+      "rgba(235,240,255,"+
+      (.2+r()*.5).toFixed(2)+
+      ")";
+
+
+    x.fillRect(
+      r()*W,
+      r()*HY,
+      .8,
+      .8
+    );
+  }
+
+
+  const R =
+    cl(
+      W*.028,
+      24,
+      42
+    );
+
+
+  const mx =
+    W*.8;
+
+
+  const my =
+    H*.2;
+
+
+  let mg =
+    x.createRadialGradient(
+      mx,
+      my,
+      R*.5,
+      mx,
+      my,
+      R*8
+    );
+
+
+  mg.addColorStop(
+    0,
+    "rgba(190,210,255,.30)"
+  );
+
+
+  mg.addColorStop(
+    1,
+    "rgba(190,210,255,0)"
+  );
+
+
+  x.fillStyle=mg;
+
+
+  x.fillRect(
+    mx-R*8,
+    my-R*8,
+    R*16,
+    R*16
+  );
+
+
+  const m =
+    document.createElement(
+      "canvas"
+    );
+
+
+  m.width =
+    m.height =
+    R*4;
+
+
+  const y =
+    m.getContext("2d");
+
+
+  y.translate(
+    R*2,
+    R*2
+  );
+
+
+  const mdg =
+    y.createRadialGradient(
+      -R*.3,
+      -R*.3,
+      0,
+      0,
+      0,
+      R
+    );
+
+
+  mdg.addColorStop(
+    0,
+    "#fffdf3"
+  );
+
+
+  mdg.addColorStop(
+    1,
+    "#d9d5c0"
+  );
+
+
+  y.fillStyle=mdg;
+
+  y.beginPath();
+
+  y.arc(
+    0,
+    0,
+    R,
+    0,
+    7
+  );
+
+  y.fill();
+
+
+  y.globalCompositeOperation =
+    "destination-out";
+
+
+  y.beginPath();
+
+  y.arc(
+    R*.55,
+    -R*.12,
+    R*.98,
+    0,
+    7
+  );
+
+  y.fill();
+
+
+  x.drawImage(
+    m,
+    mx-R*2,
+    my-R*2
+  );
+
+
+  let hg =
+    x.createLinearGradient(
+      0,
+      HY-H*.2,
+      0,
+      HY+H*.05
+    );
+
+
+  hg.addColorStop(
+    0,
+    "rgba(70,120,190,0)"
+  );
+
+
+  hg.addColorStop(
+    1,
+    "rgba(90,140,200,.35)"
+  );
+
+
+  x.fillStyle=hg;
+
+
+  x.fillRect(
+    0,
+    HY-H*.2,
+    W,
+    H*.25
+  );
+
+
+  [
+    "#0e1d3a",
+    "#08122a",
+    "#030814"
+  ]
+  .forEach(
+    (col,i)=>{
+
+      path(
+        x,
+        ridN[i]
+      );
+
+
+      x.fillStyle=col;
+
+      x.fill();
+
+
+      x.strokeStyle =
+        "rgba(170,195,255,"+
+        (.2-i*.05)+
+        ")";
+
+
+      x.lineWidth=1;
+
+      x.beginPath();
+
+      ridN[i].forEach(
+        (p,j)=>
+          j
+            ? x.lineTo(
+                p[0],
+                p[1]
+              )
+            : x.moveTo(
+                p[0],
+                p[1]
+              )
+      );
+
+
+      x.stroke();
+    }
+  );
+
+
+  stat=c;
+}
+
+
+function resize(){
+
+  W =
+    innerWidth;
+
+  H =
+    innerHeight;
+
+  HY =
+    H*.7;
+
+
+  [cD,cN].forEach(
+    c=>{
+
+      c.width =
+        W*dpr;
+
+      c.height =
+        H*dpr;
+
+      c.getContext("2d")
+        .setTransform(
+          dpr,
+          0,
+          0,
+          dpr,
+          0,
+          0
+        );
+    }
+  );
+
+
+  ridD=[
+    ridge(
+      11,
+      HY-H*.03,
+      H*.16,
+      1
+    ),
+
+    ridge(
+      23,
+      HY+H*.02,
+      H*.13,
+      1
+    ),
+
+    ridge(
+      37,
+      HY+H*.08,
+      H*.11,
+      .8
+    ),
+
+    ridge(
+      41,
+      HY+H*.15,
+      H*.07,
+      .6
+    )
+  ];
+
+
+  ridN=[
+    ridge(
+      53,
+      HY-H*.01,
+      H*.15,
+      1
+    ),
+
+    ridge(
+      67,
+      HY+H*.07,
+      H*.11,
+      .8
+    ),
+
+    ridge(
+      79,
+      HY+H*.14,
+      H*.07,
+      .6
+    )
+  ];
+
+
+  const r =
+    rnd(5);
+
+
+  clouds=[];
+
+
+  for(
+    let i=0;
+    i<9;
+    i++
+  ){
+
+    clouds.push({
+      x:r()*(W+500),
+      y:H*(.08+r()*.42),
+      s:.8+r()*1.3,
+      v:4+r()*9
+    });
+  }
+
+
+  stars=[];
+
+
+  for(
+    let i=0;
+    i<170;
+    i++
+  ){
+
+    stars.push({
+      x:r()*W,
+      y:r()*HY*.95,
+      r:.5+r()*r()*1.9,
+      p:r()*6.3,
+      v:.8+r()*2.2,
+      c:[
+        "#fff",
+        "#cfe0ff",
+        "#ffe9c8",
+        "#bcd2ff"
+      ][
+        (r()*4)|0
+      ]
+    });
+  }
+
+
+  if(!spW){
+
+    spW =
+      sprite(
+        "255,255,255"
+      );
+
+    spP =
+      sprite(
+        "255,176,120"
+      );
+  }
+
+
+  buildNight();
+}
+
+
+function drawDay(now){
+
+  const x=xD;
+
+  const p =
+    reduce
+      ? 1
+      : cl(
+          (now-t0)/18000
+        );
+
+
+  const e =
+    ease(p);
+
+
+  const t =
+    now/1000;
+
+
+  const g =
+    x.createLinearGradient(
+      0,
+      0,
+      0,
+      HY
+    );
+
+
+  g.addColorStop(
+    0,
+    mix(
+      "#050e1e",
+      "#27558a",
+      e
+    )
+  );
+
+
+  g.addColorStop(
+    .5,
+    mix(
+      "#161c36",
+      "#6f9bc4",
+      e
+    )
+  );
+
+
+  g.addColorStop(
+    .82,
+    mix(
+      "#55384a",
+      "#f0c08e",
+      e
+    )
+  );
+
+
+  g.addColorStop(
+    1,
+    mix(
+      "#b8582f",
+      "#ffd8a0",
+      e
+    )
+  );
+
+
+  x.fillStyle=g;
+
+  x.fillRect(
+    0,
+    0,
+    W,
+    H
+  );
+
+
+  const sx =
+    W*.66;
+
+
+  const sy =
+    lerp(
+      HY+H*.07,
+      HY-H*.27,
+      e
+    );
+
+
+  x.globalCompositeOperation =
+    "lighter";
+
+
+  [
+    [
+      W*.75,
+      "255,160,90",
+      .26*(.35+.65*e)
+    ],
+
+    [
+      W*.25,
+      "255,205,140",
+      .5
+    ],
+
+    [
+      70,
+      "255,240,210",
+      .9
+    ]
+  ]
+  .forEach(
+    ([rad,col,al])=>{
+
+      const h =
+        x.createRadialGradient(
+          sx,
+          sy,
+          0,
+          sx,
+          sy,
+          rad
+        );
+
+
+      h.addColorStop(
+        0,
+        "rgba("+col+","+al+")"
+      );
+
+
+      h.addColorStop(
+        1,
+        "rgba("+col+",0)"
+      );
+
+
+      x.fillStyle=h;
+
+
+      x.fillRect(
+        0,
+        0,
+        W,
+        H
+      );
+    }
+  );
+
+
+  x.save();
+
+  x.translate(
+    sx,
+    sy
+  );
+
+
+  for(
+    let i=0;
+    i<14;
+    i++
+  ){
+
+    const a =
+      i*Math.PI/7 +
+      t*.015*mo +
+      Math.sin(i*3.1)*.1;
+
+
+    const w =
+      .045 +
+      .02*
+      Math.sin(i*1.7);
+
+
+    const L =
+      H*1.3;
+
+
+    const rg =
+      x.createLinearGradient(
+        0,
+        0,
+        Math.cos(a)*L,
+        Math.sin(a)*L
+      );
+
+
+    rg.addColorStop(
+      0,
+      "rgba(255,222,170,"+
+      (
+        .16*e*
+        (
+          .7+
+          .3*
+          Math.sin(t*.6+i)
+        )
+      ).toFixed(3)+
+      ")"
+    );
+
+
+    rg.addColorStop(
+      1,
+      "rgba(255,222,170,0)"
+    );
+
+
+    x.fillStyle=rg;
+
+    x.beginPath();
+
+    x.moveTo(0,0);
+
+    x.lineTo(
+      Math.cos(a-w)*L,
+      Math.sin(a-w)*L
+    );
+
+    x.lineTo(
+      Math.cos(a+w)*L,
+      Math.sin(a+w)*L
+    );
+
+    x.fill();
+  }
+
+
+  x.restore();
+
+  x.globalCompositeOperation =
+    "source-over";
+
+
+  const d =
+    x.createRadialGradient(
+      sx,
+      sy,
+      0,
+      sx,
+      sy,
+      30
+    );
+
+
+  d.addColorStop(
+    0,
+    "#fffdf4"
+  );
+
+
+  d.addColorStop(
+    .7,
+    "#fff0cc"
+  );
+
+
+  d.addColorStop(
+    1,
+    "rgba(255,230,180,0)"
+  );
+
+
+  x.fillStyle=d;
+
+  x.beginPath();
+
+  x.arc(
+    sx,
+    sy,
+    30,
+    0,
+    7
+  );
+
+  x.fill();
+
+
+  clouds.forEach(
+    c=>{
+
+      const cx =
+        (
+          (
+            c.x+
+            t*c.v*mo
+          ) %
+          (W+520)
+        ) -
+        460;
+
+
+      const warm =
+        cl(
+          1-c.y/HY
+        );
+
+
+      x.globalAlpha =
+        .55*
+        (
+          .3+
+          .7*e
+        );
+
+
+      x.drawImage(
+        spW,
+        cx,
+        c.y,
+        460*c.s,
+        150*c.s
+      );
+
+
+      x.globalAlpha =
+        .5*
+        e*
+        (
+          .4+
+          warm
+        );
+
+
+      x.drawImage(
+        spP,
+        cx,
+        c.y+8,
+        460*c.s,
+        150*c.s
+      );
+    }
+  );
+
+
+  x.globalAlpha=1;
+
+
+  const far=[
+    [
+      "#2b3652",
+      "#a8bccd"
+    ],
+
+    [
+      "#212b44",
+      "#85a0b4"
+    ],
+
+    [
+      "#181f36",
+      "#5e7f8c"
+    ],
+
+    [
+      "#0d1322",
+      "#2f4b4b"
+    ]
+  ];
+
+
+  ridD.forEach(
+    (pts,i)=>{
+
+      path(
+        x,
+        pts
+      );
+
+
+      x.fillStyle =
+        mix(
+          far[i][0],
+          far[i][1],
+          e
+        );
+
+
+      x.fill();
+
+
+      x.strokeStyle =
+        "rgba(255,205,150,"+
+        (
+          .35*e*
+          (
+            .5+
+            i*.15
+          )
+        ).toFixed(3)+
+        ")";
+
+
+      x.lineWidth=1.2;
+
+      x.beginPath();
+
+
+      pts.forEach(
+        (q,j)=>
+          j
+            ? x.lineTo(
+                q[0],
+                q[1]
+              )
+            : x.moveTo(
+                q[0],
+                q[1]
+              )
+      );
+
+
+      x.stroke();
+
+
+      if(i<3){
+
+        mist(
+          x,
+          t+i*40,
+          "255,215,170",
+          (
+            .16*
+            (
+              .4+
+              .6*e
+            )
+          ).toFixed(2),
+          HY+
+          H*
+          (
+            .02+
+            i*.05
+          )
+        );
+      }
+    }
+  );
+
+
+  if(e>.55){
+
+    const k =
+      (e-.55)/.45;
+
+
+    [
+      [.25,26],
+      [.45,14],
+      [.7,40],
+      [.9,20]
+    ]
+    .forEach(
+      ([f,r2])=>{
+
+        const fx =
+          lerp(
+            sx,
+            W/2,
+            f*1.6
+          );
+
+
+        const fy =
+          lerp(
+            sy,
+            H/2,
+            f*1.6
+          );
+
+
+        const fg =
+          x.createRadialGradient(
+            fx,
+            fy,
+            0,
+            fx,
+            fy,
+            r2
+          );
+
+
+        fg.addColorStop(
+          0,
+          "rgba(255,220,170,"+
+          (
+            .1*k
+          ).toFixed(3)+
+          ")"
+        );
+
+
+        fg.addColorStop(
+          1,
+          "rgba(255,220,170,0)"
+        );
+
+
+        x.fillStyle=fg;
+
+
+        x.fillRect(
+          fx-r2,
+          fy-r2,
+          r2*2,
+          r2*2
+        );
+      }
+    );
+  }
+}
+
+
+function drawNight(
+  now,
+  dt
+){
+
+  const x =
+    xN;
+
+
+  const t =
+    now/1000;
+
+
+  x.globalCompositeOperation =
+    "source-over";
+
+
+  x.globalAlpha=1;
+
+
+  x.drawImage(
+    stat,
+    0,
+    0,
+    W,
+    H
+  );
+
+
+  stars.forEach(
+    s=>{
+
+      const a =
+        .4+
+        .6*
+        (
+          .5+
+          .5*
+          Math.sin(
+            t*s.v*mo+
+            s.p
+          )
+        );
+
+
+      x.globalAlpha=a;
+
+      x.fillStyle=s.c;
+
+
+      x.beginPath();
+
+
+      x.arc(
+        s.x,
+        s.y,
+        s.r,
+        0,
+        7
+      );
+
+
+      x.fill();
+
+
+      if(
+        s.r>1.6
+      ){
+
+        x.globalAlpha =
+          a*.5;
+
+
+        x.fillRect(
+          s.x-s.r*4,
+          s.y-.4,
+          s.r*8,
+          .8
+        );
+
+
+        x.fillRect(
+          s.x-.4,
+          s.y-s.r*4,
+          .8,
+          s.r*8
+        );
+      }
+    }
+  );
+
+
+  x.globalAlpha=1;
+
+
+  mist(
+    x,
+    t,
+    "120,160,220",
+    .1,
+    HY+H*.1
+  );
+
+
+  if(mo){
+
+    nextM -= dt;
+
+
+    if(nextM<=0){
+
+      nextM =
+        2.5+
+        Math.random()*5;
+
+
+      const n =
+        Math.random()<.2
+          ? 2
+          : 1;
+
+
+      for(
+        let i=0;
+        i<n;
+        i++
+      ){
+
+        metS.push({
+
+          x:
+            Math.random()*W*.9+
+            W*.05,
+
+          y:
+            Math.random()*H*.35,
+
+          a:
+            .38+
+            Math.random()*.3,
+
+          d:
+            Math.random()<.5
+              ? 1
+              : -1,
+
+          v:
+            900+
+            Math.random()*700,
+
+          l:0,
+
+          m:
+            .7+
+            Math.random()*.6,
+
+          len:
+            170+
+            Math.random()*150
+        });
+      }
+
+
+      x.globalCompositeOperation =
+        "lighter";
+
+
+      metS =
+        metS.filter(
+          m =>
+            (m.l+=dt) <
+            m.m
+        );
+
+
+      metS.forEach(
+        m=>{
+
+          const dist =
+            m.v*m.l;
+
+
+          const h2x =
+            m.x+
+            Math.cos(m.a)*
+            dist*
+            m.d;
+
+
+          const h2y =
+            m.y+
+            Math.sin(m.a)*
+            dist;
+
+
+          const t2x =
+            h2x-
+            Math.cos(m.a)*
+            m.len*
+            m.d;
+
+
+          const t2y =
+            h2y-
+            Math.sin(m.a)*
+            m.len;
+
+
+          const al =
+            Math.sin(
+              Math.PI*
+              m.l/
+              m.m
+            ).toFixed(2);
+
+
+          const lg =
+            x.createLinearGradient(
+              t2x,
+              t2y,
+              h2x,
+              h2y
+            );
+
+
+          lg.addColorStop(
+            0,
+            "rgba(160,200,255,0)"
+          );
+
+
+          lg.addColorStop(
+            1,
+            "rgba(255,255,255,"+
+            al+
+            ")"
+          );
+
+
+          x.strokeStyle=lg;
+          x.lineWidth=1.8;
+          x.lineCap="round";
+
+
+          x.beginPath();
+
+          x.moveTo(
+            t2x,
+            t2y
+          );
+
+          x.lineTo(
+            h2x,
+            h2y
+          );
+
+          x.stroke();
+
+
+          const hg =
+            x.createRadialGradient(
+              h2x,
+              h2y,
+              0,
+              h2x,
+              h2y,
+              9
+            );
+
+
+          hg.addColorStop(
+            0,
+            "rgba(220,235,255,"+
+            al+
+            ")"
+          );
+
+
+          hg.addColorStop(
+            1,
+            "rgba(220,235,255,0)"
+          );
+
+
+          x.fillStyle=hg;
+
+
+          x.fillRect(
+            h2x-9,
+            h2y-9,
+            18,
+            18
+          );
+        }
+      );
+
+
+      x.globalCompositeOperation =
+        "source-over";
+    }
+  }
+}
+
+
+let last =
+  performance.now();
+
+
+function frame(now){
+
+  const dt =
+    Math.min(
+      .05,
+      (now-last)/1000
+    );
+
+
+  last=now;
+
+
+  if(
+    !document.hidden
+  ){
+
+    if(
+      body.dataset.theme ===
+      "night"
+    ){
+
+      drawNight(
+        now,
+        dt
+      );
+
+    }else{
+
+      drawDay(
+        now
+      );
+    }
+  }
+
+
+  requestAnimationFrame(
+    frame
+  );
+}
+
+
+new MutationObserver(
+  ()=>{
+    if(
+      body.dataset.theme !==
+      "night"
+    ){
+
+      t0 =
+        performance.now();
+    }
+  }
+)
+.observe(
+  body,
+  {
+    attributes:true,
+    attributeFilter:[
+      "data-theme"
+    ]
+  }
+);
+
+
+addEventListener(
+  "resize",
+  resize
+);
+
+
+resize();
+
+
+const gc =
+  document.createElement(
+    "canvas"
+  );
+
+
+gc.width =
+  gc.height =
+  160;
+
+
+const gx =
+  gc.getContext("2d");
+
+
+const id =
+  gx.createImageData(
+    160,
+    160
+  );
+
+
+for(
+  let i=0;
+  i<id.data.length;
+  i+=4
+){
+
+  const v =
+    Math.random()*255;
+
+
+  id.data[i] =
+    v;
+
+  id.data[i+1] =
+    v;
+
+  id.data[i+2] =
+    v;
+
+  id.data[i+3] =
+    255;
+}
+
+
+gx.putImageData(
+  id,
+  0,
+  0
+);
+
+
+document.getElementById(
+  "grain"
+).style.backgroundImage =
+  "url(" +
+  gc.toDataURL() +
+  ")";
+
+
+requestAnimationFrame(
+  frame
+);
+
+})();
+
+</script>
+
+</body>
+</html>
